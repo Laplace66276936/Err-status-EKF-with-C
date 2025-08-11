@@ -1,3 +1,4 @@
+// follow step1 to step6 to use EKF
 
 #include "main.h"
 #include "adc.h"
