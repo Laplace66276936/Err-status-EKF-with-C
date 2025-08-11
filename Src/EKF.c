@@ -55,6 +55,7 @@ static inline void mat_trans_3x3(const float A[9], float AT[9]) {
 }
 
 
+// 4x4 mat mult 4x1 vec
 static inline void mat4x4_mult_vec4(const float M[16], const float V[4], float R[4]) {
     R[0] = M[0]*V[0] + M[1]*V[1] + M[2]*V[2] + M[3]*V[3];
     R[1] = M[4]*V[0] + M[5]*V[1] + M[6]*V[2] + M[7]*V[3];
@@ -63,6 +64,7 @@ static inline void mat4x4_mult_vec4(const float M[16], const float V[4], float R
 }
 
 
+// 3x3 mat mult 3x3 mat
 static void mat_mult_3x3(const float A[9], const float B[9], float C[9]) {
     C[0] = A[0]*B[0] + A[1]*B[3] + A[2]*B[6];
     C[1] = A[0]*B[1] + A[1]*B[4] + A[2]*B[7];
@@ -78,6 +80,16 @@ static void mat_mult_3x3(const float A[9], const float B[9], float C[9]) {
 }
 
 
+// A, B is 3x3 mat, Dst = A*B*trans(A)
+static void biLiner_mult_3x3(float A[9], float B[9], float Dst[9]) {
+	float T0[9], tsA[9];
+	mat_trans_3x3(A,tsA);
+	mat_mult_3x3(B, tsA, T0);
+	mat_mult_3x3(A, T0, Dst);
+}
+
+
+// generate Fq and F
 static inline void getFq_F(float Fq_D[16], float F_D[9], float gyro[3], float dt) {
 	
 	float w[3]={gyro[0]*dt/2, gyro[1]*dt/2, gyro[2]*dt/2};
@@ -93,14 +105,7 @@ static inline void getFq_F(float Fq_D[16], float F_D[9], float gyro[3], float dt
 }
 
 
-static void biLiner_mult_3x3(float A[9], float B[9], float Dst[9]) {
-	float T0[9], tsA[9];
-	mat_trans_3x3(A,tsA);
-	mat_mult_3x3(B, tsA, T0);
-	mat_mult_3x3(A, T0, Dst);
-}
-
-
+// generate hq and H
 static inline void get_hq_H(float hq[3], float H_D[9], float Ht_D[9], float q0[4]) {
 	hq[0] = 2*(q0[1]*q0[3] - q0[0]*q0[2]);
 	hq[1] = 2*(q0[2]*q0[3] + q0[0]*q0[1]);
@@ -226,6 +231,7 @@ int EKF_Update(EKF_Handle *hd, float a[3]) {
 }
 
 
+// 直接更新，无观测修正
 int EKF_Plain_Update(EKF_Handle *hd) {
 	mat_copy_3x3(hd->P0, hd->P1);
 	hd->q1[0]=hd->q0[0]; hd->q1[1]=hd->q0[1];
